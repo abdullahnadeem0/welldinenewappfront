@@ -1,9 +1,8 @@
+// src/components/Sidebar/Sidebar.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import API from '../../api/axios';
 import './Sidebar.css';
-
-
 
 import { 
   FiHome, FiBarChart2, FiUsers, FiFolder, FiCalendar, 
@@ -14,7 +13,7 @@ import {
   FiDollarSign, FiShoppingCart, FiUserPlus, FiUserCheck,
   FiUserX, FiUserMinus, FiCreditCard, FiBriefcase,
   FiMenu, FiX, FiTool, FiAward, FiEye, FiPackage, FiFilePlus,
-  FiAlertCircle  // ← Added FiAlertCircle
+  FiAlertCircle
 } from 'react-icons/fi';
 
 import { FaUserCircle, FaWrench, FaMoneyBillWave, FaUserTag, FaFileInvoice } from 'react-icons/fa';
@@ -55,7 +54,6 @@ const Sidebar = () => {
   }, []);
 
   useEffect(() => {
-    // Update menu items when permissions change
     if (userType === 'role') {
       const filteredMenu = getFilteredRoleMenuItems();
       setMenuItems(filteredMenu);
@@ -65,7 +63,6 @@ const Sidebar = () => {
   }, [userPermissions]);
 
   useEffect(() => {
-    // Set active menu based on current path
     const path = location.pathname;
     const currentMenuItems = userType === 'admin' ? adminMenuItems : menuItems;
     
@@ -112,7 +109,6 @@ const Sidebar = () => {
           role: user.role || 'manager'
         });
         
-        // Load permissions from stored user
         if (user.permissionsArray) {
           setUserPermissions(user.permissionsArray);
           console.log('✅ Permissions loaded from storage:', user.permissionsArray);
@@ -127,7 +123,6 @@ const Sidebar = () => {
     try {
       setLoading(true);
       
-      // First try to get permissions from stored user
       const storedUser = JSON.parse(localStorage.getItem('roleUser') || '{}');
       if (storedUser.permissionsArray && storedUser.permissionsArray.length > 0) {
         console.log('📦 Using stored permissions:', storedUser.permissionsArray);
@@ -136,7 +131,6 @@ const Sidebar = () => {
         return;
       }
       
-      // If not in storage, fetch from API
       let roleId = storedUser.id || storedUser._id;
       
       if (!roleId) {
@@ -168,7 +162,6 @@ const Sidebar = () => {
         console.log('✅ Permissions loaded from API:', permsArray);
         setUserPermissions(permsArray);
         
-        // Update stored user
         storedUser.permissionsArray = permsArray;
         localStorage.setItem('roleUser', JSON.stringify(storedUser));
       } else {
@@ -189,26 +182,20 @@ const Sidebar = () => {
     }
   };
 
-  // Check if user has permission for a page
   const hasPermission = (pageId) => {
     if (userType === 'admin') return true;
-    
     if (!pageId) return false;
-    
-    // Super admin has all permissions
     if (userRole === 'super-admin') return true;
-    
-    // Check if pageId exists in permissions array
     const hasPerm = userPermissions.includes(pageId);
-    
     if (!hasPerm) {
       console.log(`❌ No permission for: ${pageId}`);
     }
-    
     return hasPerm;
   };
 
-  // Define all possible menu items with their page IDs
+  // ============================================
+  // ADMIN MENU ITEMS
+  // ============================================
   const adminMenuItems = [
     {
       id: 'dashboard',
@@ -341,6 +328,16 @@ const Sidebar = () => {
       path: '/All-Orders',
       pageId: 'all-orders'
     },
+
+    // ✅ Credits — نیا add کیا
+    { 
+      id: 'credits', 
+      title: 'Credits', 
+      icon: <FiDollarSign />, 
+      path: '/credit',
+      pageId: 'credits'
+    },
+
     {
       id: 'settings',
       title: 'Settings',
@@ -372,6 +369,9 @@ const Sidebar = () => {
     }
   ];
 
+  // ============================================
+  // ROLE MENU ITEMS
+  // ============================================
   const roleMenuItems = [
     {
       id: 'dashboard',
@@ -446,6 +446,16 @@ const Sidebar = () => {
       path: '/role-orders',
       pageId: 'role-orders'
     },
+
+    // ✅ Credits — role users کے لیے بھی
+    { 
+      id: 'credits', 
+      title: 'Credits', 
+      icon: <FiDollarSign />, 
+      path: '/credit',
+      pageId: 'credits'
+    },
+
     {
       id: 'quotation',
       title: 'Quotation',
@@ -463,17 +473,14 @@ const Sidebar = () => {
     }
   ];
 
-  // Filter role menu items based on permissions
   const getFilteredRoleMenuItems = () => {
     console.log('🔍 Filtering menu items with permissions:', userPermissions);
     
     const filtered = roleMenuItems.filter(item => {
-      // If item has no submenu, check its own permission
       if (!item.subMenu || item.subMenu.length === 0) {
         return hasPermission(item.pageId);
       }
       
-      // If item has submenu, check if any subitem has permission
       const hasAnySubPermission = item.subMenu.some(subItem => {
         return hasPermission(subItem.pageId);
       });
@@ -481,7 +488,6 @@ const Sidebar = () => {
       return hasAnySubPermission;
     });
 
-    // Filter submenus
     const filteredWithSubmenus = filtered.map(item => {
       if (item.subMenu && item.subMenu.length > 0) {
         const filteredSubMenu = item.subMenu.filter(subItem => {
@@ -495,7 +501,6 @@ const Sidebar = () => {
       }
       return item;
     }).filter(item => {
-      // Remove items that have empty submenus
       if (item.subMenu && item.subMenu.length === 0) {
         return false;
       }
@@ -617,7 +622,6 @@ const Sidebar = () => {
           </div>
           <div className="user-info">
             <span className="user-name">{userDisplay.name}</span>
-           
             <span className="user-email">{userDisplay.email}</span>
           </div>
         </div>
